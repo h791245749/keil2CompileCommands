@@ -1,0 +1,31 @@
+name: Build Windows Executable
+on:
+  push:
+    tags:
+      - "v*.*.*"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Build executable with PyInstaller
+        uses: JackMcKew/pyinstaller-action-windows@latest
+        with:
+          path: '.'
+          spec: 'k2c.spec' # 可选
+         # requirements: 'requirements.txt' # 可选
+      - run: ls dist
+      - run: mv dist/k2c.exe .
+      - name: zip the build
+        run: |
+          zip -r k2c.zip k2c.exe
+          ls .
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.RELEASE_TOKEN }}
+          body_path: ./CHANGELOG.md
+          files: |
+            ./output.zip
+            ./CHANGELOG.md
