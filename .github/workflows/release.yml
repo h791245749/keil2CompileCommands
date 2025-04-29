@@ -36,4 +36,4 @@ jobs:
           token: ${{ secrets.RELEASE_TOKEN }}
           body: ${{steps.github_release.outputs.changelog}}
           files: |
-            ./k2c.zip
+            ./k2c.exe
