@@ -27,8 +27,20 @@ def parse_keil_project(file_path):
         
 
         # 包含路径
+        uvprojx_dir = os.path.dirname(os.path.abspath(file_path)) # Keil 项目文件所在目录
+        output_dir = os.getcwd() # 假设 compile_commands.json 在当前目录生成
+
         include_path = cads.find('VariousControls/IncludePath').text if cads.find('VariousControls/IncludePath') is not None else ''
-        includes = [f"-I{inc.replace("\\", "/").replace("..\\", "").replace("../", '')}" for inc in include_path.split(';') if inc]
+        raw_includes = [inc for inc in include_path.split(';') if inc]
+        includes = []
+        for inc in raw_includes:
+            # 将相对于 uvprojx 目录的包含路径转换为相对于 output_dir 的路径
+            abs_inc_path = os.path.abspath(os.path.join(uvprojx_dir, inc))
+            rel_inc_path = os.path.relpath(abs_inc_path, output_dir)
+            # 确保路径分隔符是 '/'
+            rel_inc_path = rel_inc_path.replace("\\", "/")
+            includes.append(f"-I{rel_inc_path}")
+
         # 提取源文件路径
         groups = target.findall('.//Group')
         files = []
@@ -44,14 +56,22 @@ def parse_keil_project(file_path):
         
         # 构建compile_commands.json内容
         compile_commands = []
-        for file_path in files:
+        for source_file_rel_to_proj in files: # 重命名变量
+            # 计算源文件的绝对路径
+            abs_source_file_path = os.path.abspath(os.path.join(uvprojx_dir, source_file_rel_to_proj))
+
+            # 计算相对于输出目录 (cwd) 的相对路径
+            relative_file_path = os.path.relpath(abs_source_file_path, output_dir)
+            # 确保路径分隔符是 '/'
+            relative_file_path = relative_file_path.replace("\\", "/")
+
             command = {
-                "directory": os.path.abspath(os.path.dirname(file_path)),
                 "arguments": includes + macros,
-                "file": os.path.abspath(file_path)
+                "directory": output_dir,
+                "file": relative_file_path
             }
             compile_commands.append(command)
-        
+
         return compile_commands
         
     except ET.ParseError as e:
@@ -69,8 +89,8 @@ def write_compile_commands(compile_commands, output_file='compile_commands.json'
     :param output_file: 输出文件的路径
     """
     try:
-            with open(output_file, 'w') as f:
-                json.dump(compile_commands, f, indent=4)
+            with open(output_file, 'w', encoding='utf-8') as f:
+                json.dump(compile_commands, f, indent=4, ensure_ascii=False)
             print(f"Successfully wrote compile commands to {output_file}")
     except IOError as e:
         print(f"Failed to write to file: {e}")
