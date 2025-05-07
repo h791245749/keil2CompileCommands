@@ -58,3 +58,7 @@ python main.py ../../MyKeilProject/MyProject.uvprojx
 ```
 
 这个文件可以被许多开发工具（如 VS Code 配合 Clangd 插件）使用，以增强代码编辑体验。
+
+Clangd LSP 安装包: https://github.com/clangd/clangd/releases/latest
+
+VS Code 的 Clangd 插件: https://github.com/clangd/vscode-clangd/releases/latest
