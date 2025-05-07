@@ -35,7 +35,7 @@ python main.py C:/Path/To/Your/Project/YourProject.uvprojx
 python main.py ../../MyKeilProject/MyProject.uvprojx
 ```
 
-当然你也可以使用打包好的exe可执行文件 [Release](https://github.com/liuyu80/keil2CompileCommands/releases/laest)
+当然你也可以使用打包好的exe可执行文件 [Release](https://github.com/liuyu80/keil2CompileCommands/releases/latest)
 
 ```bash
 k2c  ../../MyKeilProject/MyProject.uvprojx
