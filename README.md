@@ -35,6 +35,12 @@ python main.py C:/Path/To/Your/Project/YourProject.uvprojx
 python main.py ../../MyKeilProject/MyProject.uvprojx
 ```
 
+当然你也可以使用打包好的exe可执行文件 [Release](https://github.com/liuyu80/keil2CompileCommands/releases/laest)
+
+```bash
+k2c  ../../MyKeilProject/MyProject.uvprojx
+```
+
 脚本将在运行 `main.py` 的目录下生成一个名为 `compile_commands.json` 的文件。
 
 ## `compile_commands.json`
