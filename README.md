@@ -8,12 +8,16 @@
 *   提取项目中包含的 C/C++ 源文件 (`.c`) 和汇编文件 (`.s`)。
 *   提取在 Keil 项目设置中定义的宏 (`-D` 标志)。
 *   提取在 Keil 项目设置中指定的包含路径 (`-I` 标志)。
+*   自动处理包含路径的相对路径转换
+*   统一路径分隔符为 `/` 格式
+*   支持从 VSCode Clangd 设置中自动获取编译器路径
 *   根据提取的信息生成 `compile_commands.json` 文件。
 
 ## 依赖
 
 *   Python 3.x
 *   标准库: `xml.etree.ElementTree`, `json`, `os`, `sys` (无需额外安装)
+*   可选: `json5` (用于读取带注释的VSCode设置文件)
 
 ## 使用方法
 
@@ -43,6 +47,17 @@ k2c  ../../MyKeilProject/MyProject.uvprojx
 
 脚本将在运行 `main.py` 的目录下生成一个名为 `compile_commands.json` 的文件。
 
+## 编译器路径设置
+
+为了获取正确的编译器路径，脚本会按以下顺序查找：
+1. 当前项目目录下的 `.vscode/settings.json`
+2. 全局 VSCode 用户设置 (`AppData/Code/User/settings.json`)
+
+如果找不到编译器路径，脚本会提醒您添加以下配置到 VSCode 设置中：
+```json
+"clangd.arguments": ["--query-driver=<absolute_path_to_compiler>"]
+```
+
 ## `compile_commands.json`
 
 生成的 `compile_commands.json` 文件包含一个 JSON 数组，其中每个对象代表项目中的一个源文件及其编译参数。结构如下：
@@ -52,6 +67,7 @@ k2c  ../../MyKeilProject/MyProject.uvprojx
   {
     "directory": "/path/to/source/file/directory",
     "arguments": [
+      "<absolute_path_to_compiler>",
       "-Iinclude/path1",
       "-Iinclude/path2",
       "-DMACRO1",
