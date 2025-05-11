@@ -60,6 +60,7 @@ def parse_keil_project(file_path):
                         files.append(file_path)
         
         # 构建compile_commands.json内容
+        compiler = get_clangd_query_driver()
         compile_commands = []
         for source_file_rel_to_proj in files: # 重命名变量
             # 计算源文件的绝对路径
@@ -70,7 +71,6 @@ def parse_keil_project(file_path):
             # 确保路径分隔符是 '/'
             relative_file_path = relative_file_path.replace("\\", "/")
             
-            compiler = "g++" if relative_file_path.endswith(('.cpp', '.cc', '.cxx', '.c++')) else "gcc"
             command = {
                 "arguments": [compiler] + includes + macros,
                 "directory": output_dir,
@@ -100,6 +100,45 @@ def write_compile_commands(compile_commands, output_file='compile_commands.json'
         print(f"Successfully wrote compile commands to {output_file}")
     except IOError as e:
         print(f"Failed to write to file: {e}")
+
+
+def get_clangd_query_driver():
+    """获取clangd的query-driver路径"""
+    def read_json_file(file_path):
+        import json5  # 使用json5库来支持注释和更灵活的JSON格式
+        """读取JSON文件的辅助函数"""
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return json5.load(f)  # 直接支持JSON5标准（含注释）
+        
+    def find_compiler_in_settings(settings_path):
+        if os.path.exists(settings_path):
+            data = read_json_file(settings_path)
+            if data and 'clangd.arguments' in data:
+                for arg in data['clangd.arguments']:
+                    if isinstance(arg, str) and arg.startswith('--query-driver='):
+                        compilers = arg.split('=')[1]
+                        compilers = compilers.split(',')
+                        print(f"Found compiler: {compilers}")
+                        return compilers[0]
+        return None
+    
+    # 1. 尝试读取当前目录下的.vscode/settings.json
+    local_settings = os.path.join('.vscode', 'settings.json')
+    compiler = find_compiler_in_settings(local_settings)
+    if compiler:
+        return compiler
+    
+    # 2. 尝试读取全局settings.json
+    global_settings = os.path.join(os.getenv('AppData'), 'Code', 'User', 'settings.json')
+    compiler = find_compiler_in_settings(global_settings)
+    if compiler:
+        return compiler
+    
+    # 3. 如果都没找到，返回默认值
+    print("Please add the following to your VSCode settings.json (use absolute path):")
+    print('"clangd.arguments": ["--query-driver=<absolute_path_to_compiler>"]')
+    return "<compilerPath>"
+    
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
