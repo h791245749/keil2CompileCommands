@@ -43,8 +43,8 @@ def parse_keil_project(file_path):
             if os.path.isdir(abs_inc_path):
                 includes.append(f"-I{rel_inc_path}")
             else:
-                # 可以选择打印警告或记录日志
-                print(f"警告：包含路径目录不存在，已跳过: {abs_inc_path}")
+                # TODO:可以选择打印警告或记录日志
+                print(f"Warning: Include path directory does not exist, skipped: {abs_inc_path}")
 
         # 提取源文件路径
         groups = target.findall('.//Group')
@@ -99,7 +99,7 @@ def write_compile_commands(compile_commands, output_file='compile_commands.json'
             json.dump(compile_commands, f, indent=4, ensure_ascii=False)
         print(f"Successfully wrote compile commands to {output_file}")
     except IOError as e:
-        print(f"Failed to write to file: {e}")
+        print(f"Failed to write to {output_file} file: {e}")
 
 
 def get_clangd_query_driver():
