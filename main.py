@@ -128,15 +128,15 @@ def create_clangd_directory():
     """
     创建.clamd文件夹并写入.gitignore文件
     """
-    clangd_dir = os.path.join('.', '.clangd')
+    cache_dir = os.path.join('.', '.cache')
     try:
-        os.makedirs(clangd_dir, exist_ok=True)
-        gitignore_path = os.path.join(clangd_dir, '.gitignore')
+        os.makedirs(cache_dir, exist_ok=True)
+        gitignore_path = os.path.join(cache_dir, '.gitignore')
         with open(gitignore_path, 'w', encoding='utf-8') as f:
             f.write('*')
-        print("Successfully created .clangd directory and .gitignore file")
+        print("Successfully created .cache directory and .gitignore file")
     except Exception as e:
-        print(f"Failed to create .clangd directory or .gitignore file: {e}")
+        print(f"Failed to create .cache directory or .gitignore file: {e}")
 
 
 def get_clangd_query_driver():
