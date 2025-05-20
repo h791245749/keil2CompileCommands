@@ -54,12 +54,6 @@ def parse_keil_project(file_path):
             rel_inc_path = os.path.relpath(abs_inc_path, output_dir)
             # 确保路径分隔符是 '/'
             rel_inc_path = rel_inc_path.replace("\\", "/")
-            # 检查目录是否存在
-            if os.path.isdir(abs_inc_path):
-                includes.append(f"-I{rel_inc_path}")
-            else:
-                # TODO:可以选择打印警告或记录日志
-                print(f"Warning: Include path directory does not exist, skipped: {abs_inc_path}")
 
         # 提取源文件路径
         groups = target.findall('.//Group')
