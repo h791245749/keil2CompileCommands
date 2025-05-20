@@ -16,13 +16,29 @@ def parse_keil_project(file_path):
         
         # 提取目标信息
         target = root.find('.//Target')
+        if target is None:
+            print("Error: Target element not found in Keil project file.")
+            return []
         
         # 提取编译选项
         target_option = target.find('.//TargetOption')
+        if target_option is None:
+            print("Error: TargetOption element not found in Keil project file.")
+            return []
         
         # 宏定义
         cads = target_option.find('.//Cads')
-        define = cads.find('VariousControls/Define').text if cads.find('VariousControls/Define') is not None else ''
+        define = ''
+        include_path = ''
+        if cads is not None:
+            define_element = cads.find('VariousControls/Define')
+            if define_element is not None and define_element.text is not None:
+                define = define_element.text
+
+            include_path_element = cads.find('VariousControls/IncludePath')
+            if include_path_element is not None and include_path_element.text is not None:
+                include_path = include_path_element.text
+
         macros = [f"-D{macro}" for macro in define.split(',') if macro]
         
 
@@ -30,7 +46,6 @@ def parse_keil_project(file_path):
         uvprojx_dir = os.path.dirname(os.path.abspath(file_path)) # Keil 项目文件所在目录
         output_dir = os.getcwd() # 假设 compile_commands.json 在当前目录生成
 
-        include_path = cads.find('VariousControls/IncludePath').text if cads.find('VariousControls/IncludePath') is not None else ''
         raw_includes = [inc for inc in include_path.split(';') if inc]
         includes = []
         for inc in raw_includes:
@@ -52,10 +67,24 @@ def parse_keil_project(file_path):
         for group in groups:
             group_files = group.findall('.//File')
             for file in group_files:
-                file_type = int(file.find('FileType').text)
-                # 只处理C/C++源文件和汇编文件
-                if file_type == 1 or file_type == 2:
-                    file_path = file.find('FilePath').text
+                file_type_element = file.find('FileType')
+                file_path_element = file.find('FilePath')
+                
+                file_type = None
+                if file_type_element is not None and file_type_element.text is not None:
+                    try:
+                        file_type = int(file_type_element.text)
+                    except ValueError:
+                        # Handle cases where text is not a valid integer
+                        print(f"Warning: Invalid FileType value: {file_type_element.text}")
+                        continue # Skip this file
+
+                file_path = None
+                if file_path_element is not None and file_path_element.text is not None:
+                    file_path = file_path_element.text
+                
+                # Only process C/C++ source files and assembly files if file_type and file_path are valid
+                if file_type in [1, 2] and file_path is not None:
                     if file_path.endswith('.c') or file_path.endswith('.s'):
                         files.append(file_path)
         
@@ -82,10 +111,10 @@ def parse_keil_project(file_path):
         
     except ET.ParseError as e:
         print(f"Failed to parse XML: {e}")
-        return {}
+        return []
     except Exception as e:
         print(f"An error occurred: {e}")
-        return {}
+        return []
 
 def write_compile_commands(compile_commands, output_file='compile_commands.json'):
     """
@@ -143,10 +172,12 @@ def get_clangd_query_driver():
         return compiler
     
     # 2. 尝试读取全局settings.json
-    global_settings = os.path.join(os.getenv('AppData'), 'Code', 'User', 'settings.json')
-    compiler = find_compiler_in_settings(global_settings)
-    if compiler:
-        return compiler
+    app_data = os.getenv('AppData')
+    if app_data:
+        global_settings = os.path.join(app_data, 'Code', 'User', 'settings.json')
+        compiler = find_compiler_in_settings(global_settings)
+        if compiler:
+            return compiler
     
     # 3. 如果都没找到，返回默认值
     print("Please add the following to your VSCode settings.json (use absolute path):")
