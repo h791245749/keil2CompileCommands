@@ -54,6 +54,7 @@ def parse_keil_project(file_path):
             rel_inc_path = os.path.relpath(abs_inc_path, output_dir)
             # 确保路径分隔符是 '/'
             rel_inc_path = rel_inc_path.replace("\\", "/")
+            includes.append(f"-I{rel_inc_path}")
 
         # 提取源文件路径
         groups = target.findall('.//Group')
