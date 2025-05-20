@@ -101,6 +101,20 @@ def write_compile_commands(compile_commands, output_file='compile_commands.json'
     except IOError as e:
         print(f"Failed to write to {output_file} file: {e}")
 
+def create_clangd_directory():
+    """
+    创建.clamd文件夹并写入.gitignore文件
+    """
+    clangd_dir = os.path.join('.', '.clangd')
+    try:
+        os.makedirs(clangd_dir, exist_ok=True)
+        gitignore_path = os.path.join(clangd_dir, '.gitignore')
+        with open(gitignore_path, 'w', encoding='utf-8') as f:
+            f.write('*')
+        print("Successfully created .clangd directory and .gitignore file")
+    except Exception as e:
+        print(f"Failed to create .clangd directory or .gitignore file: {e}")
+
 
 def get_clangd_query_driver():
     """获取clangd的query-driver路径"""
@@ -152,3 +166,4 @@ if __name__ == "__main__":
     
     compile_info = parse_keil_project(keil_project_file)
     write_compile_commands(compile_info)
+    create_clangd_directory()
