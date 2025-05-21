@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 import json
 import os
 import sys
+import argparse
 
 def parse_keil_project(file_path):
     """
@@ -125,19 +126,22 @@ def write_compile_commands(compile_commands, output_file='compile_commands.json'
     except IOError as e:
         print(f"Failed to write to {output_file} file: {e}")
 
-def create_clangd_directory():
+def create_clangd_directory(cache_dir=None):
     """
-    创建.clamd文件夹并写入.gitignore文件
+    创建clangd缓存文件夹并写入.gitignore文件
+    
+    :param cache_dir: 自定义缓存目录路径，默认为None表示使用默认.cache目录
     """
-    cache_dir = os.path.join('.', '.cache')
+    if cache_dir is None:
+        cache_dir = os.path.join('.', '.cache')
     try:
         os.makedirs(cache_dir, exist_ok=True)
         gitignore_path = os.path.join(cache_dir, '.gitignore')
         with open(gitignore_path, 'w', encoding='utf-8') as f:
             f.write('*')
-        print("Successfully created .cache directory and .gitignore file")
+        print(f"Successfully created {cache_dir} directory and .gitignore file")
     except Exception as e:
-        print(f"Failed to create .cache directory or .gitignore file: {e}")
+        print(f"Failed to create {cache_dir} directory or .gitignore file: {e}")
 
 
 def get_clangd_query_driver():
@@ -181,15 +185,23 @@ def get_clangd_query_driver():
     
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python main.py <keil_project_file>")
+    parser = argparse.ArgumentParser(description='Parse Keil project file and generate compile_commands.json')
+    parser.add_argument('project_file', type=str, help='Path to Keil project file (.uvprojx .uvproj)')
+    parser.add_argument('-d', nargs='?', const='.cache', metavar='CACHE_DIR',
+                      help='Create clangd cache directory (default: .cache)')
+    
+    if len(sys.argv) == 1:
+        parser.print_help()
         sys.exit(1)
     
-    keil_project_file = sys.argv[1]
-    if not os.path.exists(keil_project_file):
-        print(f"The specified Keil project file does not exist: {keil_project_file}")
+    args = parser.parse_args()
+    
+    if not os.path.exists(args.project_file):
+        parser.error(f"The specified Keil project file does not exist: {args.project_file}")
+        parser.print_help()
         sys.exit(1)
     
-    compile_info = parse_keil_project(keil_project_file)
+    compile_info = parse_keil_project(args.project_file)
     write_compile_commands(compile_info)
-    create_clangd_directory()
+    if args.d is not None:
+        create_clangd_directory(args.d)

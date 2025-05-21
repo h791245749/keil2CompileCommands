@@ -24,25 +24,35 @@
 在命令行中运行脚本，并将 Keil 项目文件 (`.uvprojx`) 的路径作为参数传递：
 
 ```bash
-python main.py <path_to_your_keil_project.uvprojx>
+python main.py <path_to_your_keil_project.uvprojx> [-d [CACHE_DIR]]
 ```
+
+**参数说明:**
+- `-d`: 可选参数，创建clangd缓存目录
+  - 不带参数值: 默认创建`.cache`目录
+  - 带参数值: 创建指定名称的目录
 
 **示例:**
 
+基本用法:
 ```bash
 python main.py C:/Path/To/Your/Project/YourProject.uvprojx
 ```
 
-或者使用相对路径：
-
+创建默认缓存目录:
 ```bash
-python main.py ../../MyKeilProject/MyProject.uvprojx
+python main.py ../../MyKeilProject/MyProject.uvprojx -d
+```
+
+创建自定义缓存目录:
+```bash
+python main.py ../../MyKeilProject/MyProject.uvprojx -d my_cache
 ```
 
 当然你也可以使用打包好的exe可执行文件 [Release](https://github.com/liuyu80/keil2CompileCommands/releases/latest)
 
 ```bash
-k2c  ../../MyKeilProject/MyProject.uvprojx
+k2c ../../MyKeilProject/MyProject.uvprojx -d
 ```
 
 脚本将在运行 `main.py` 的目录下生成一个名为 `compile_commands.json` 的文件。
