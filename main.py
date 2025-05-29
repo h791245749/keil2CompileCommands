@@ -88,6 +88,13 @@ def parse_keil_project(keil_project_file_path: str) -> List[Dict[str, Any]]:
         
         # 构建compile_commands.json内容
         compiler: str = get_clangd_query_driver()
+        last_backslash_index = compiler.rfind('\\')
+        if last_backslash_index != -1:
+            # 截取最后一个 \ 之前的部分，并拼接 include 目录
+            second_last_backslash_index = compiler.rfind('\\', 0, last_backslash_index)
+            if second_last_backslash_index != -1:
+                # 截取倒数第二个 \ 之前的部分，并拼接 include 目录
+                compiler_include = "-I" + compiler[:second_last_backslash_index] + '\\include'
         compile_commands: List[Dict[str, Any]] = []
         for source_file_rel_to_proj in files: # 重命名变量
             # 计算源文件的绝对路径
@@ -99,7 +106,7 @@ def parse_keil_project(keil_project_file_path: str) -> List[Dict[str, Any]]:
             relative_file_path = relative_file_path.replace("\\", "/")
             
             command: Dict[str, Any] = {
-                "arguments": [compiler] + includes + macros,
+                "arguments": [compiler] + [compiler_include] + includes + macros,
                 "directory": output_dir,
                 "file": relative_file_path
             }
