@@ -5,6 +5,22 @@ import sys
 import argparse
 from typing import List, Dict, Any, Optional
 
+def get_compiler_include(compiler_path):
+    # 标准化路径分隔符（将所有分隔符转换为系统默认分隔符）
+    normalized_path = os.path.normpath(compiler_path)
+    
+    # 获取目录部分
+    dir_part = os.path.dirname(normalized_path)
+    
+    # 获取上一级目录
+    parent_dir = os.path.dirname(dir_part)
+    
+    # 构建包含目录路径
+    include_dir = os.path.join(parent_dir, 'include')
+    
+    # 格式化为编译器参数
+    return f"-I{include_dir}"
+
 def parse_keil_project(keil_project_file_path: str) -> List[Dict[str, Any]]:
     """
     解析Keil项目文件（.uvprojx），提取编译宏定义、包含路径和源文件，
@@ -88,13 +104,7 @@ def parse_keil_project(keil_project_file_path: str) -> List[Dict[str, Any]]:
         
         # 构建compile_commands.json内容
         compiler: str = get_clangd_query_driver()
-        last_backslash_index = compiler.rfind('\\')
-        if last_backslash_index != -1:
-            # 截取最后一个 \ 之前的部分，并拼接 include 目录
-            second_last_backslash_index = compiler.rfind('\\', 0, last_backslash_index)
-            if second_last_backslash_index != -1:
-                # 截取倒数第二个 \ 之前的部分，并拼接 include 目录
-                compiler_include = "-I" + compiler[:second_last_backslash_index] + '\\include'
+        compiler_include = get_compiler_include(compiler)
         compile_commands: List[Dict[str, Any]] = []
         for source_file_rel_to_proj in files: # 重命名变量
             # 计算源文件的绝对路径
